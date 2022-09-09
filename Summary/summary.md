@@ -39,5 +39,26 @@ javaweb我学了4个小时多，有时候会走神（这个要改）！
 
 知道看什么视频。大概有什么内容。
 
-## 9月6号：
+## 9月7号：
 
+power e-commerce电商平台搭建框架，还没弄好。springboot的项目创建。
+
+在依赖中点击spring web就好了
+
+
+
+计算机底层原理：
+
+直接从最新的几个开始看，试一下能不能用java写出来。
+
+
+
+6.s081：
+
+34个小时，慢慢来，今天找到了中文翻译文档，以后可以中文翻译与视频结合起来看。实践
+
+
+
+## 9月9号：
+
+6.S081：操作系统的作用，设计组成（userspace，kernel，硬件），kernel作用（文件系统，），难点（1.硬件efficient-接口abstractor 2.接口powerful-simple 3.secuty-flexible）与有趣，lab、VX6、RISC-V开源指令集、QEMU模拟器模拟电脑硬件大概了解，read，open，write，fork
