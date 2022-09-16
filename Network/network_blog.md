@@ -6,18 +6,6 @@
 
 # 一、既然有HTTP协议，为什么还要有RPC？
 
-[![img](http://wx.qlogo.cn/mmhead/Q3auHgzwzM48bREm0nO6wjhCe2nwp7NUf2azfKAxCbDz9ZYLcvcxng/0)**小白debug**.答应我，关注之后，好好学技术，别只是收藏我的表情包。。](https://mp.weixin.qq.com/s?__biz=MzU1Nzg4NjgyMw==&mid=2247502507&idx=2&sn=aeec7d90eb6128917ad377ba750ff547&key=2d14964c488b73390d69c34d52c0e18787a08192fd427aaae7ef2512238d2fcc139879a034c87f6b89b022aaa7138ff22bc0bea9448a201a191c086bdeb46322938a7d5f57cc2d132446002aed8aa8678bd446fffb8a98fb39c97a267c6f8dc90c51706be67a46600c29585fc4d129e077941ebc63fa78e34b2469f3cacf5633&ascene=0&uin=MTk0ODQwMDA3NA%3D%3D&devicetype=Windows+10+x64&version=6307062c&lang=zh_CN&exportkey=AYgADRuI3oWHt%2F2Ha8VX03A%3D&acctmode=0&pass_ticket=oYA5t7xdopz8Wq91sGyo%2FI7wP5QMYP7BU5J937NREsJ%2Bf%2Bp77Karq%2FC1qcxuCJSe&wx_header=0&fontgear=2#)
-
-我想起了我刚工作的时候，第一次接触RPC协议，当时就很懵，**我HTTP协议用的好好的，为什么还要用RPC协议？**
-
-于是就到网上去搜。
-
-不少解释显得非常官方，我相信大家在各种平台上也都看到过，解释了又好像没解释，都在**用一个我们不认识的概念去解释另外一个我们不认识的概念**，懂的人不需要看，不懂的人看了还是不懂。
-
-这种看了，又好像没看的感觉，云里雾里的很难受，**我懂**。
-
-为了避免大家有强烈的**审丑疲劳**，今天我们来尝试重新换个方式讲一讲。
-
 ## 从TCP聊起
 
 作为一个程序员，假设我们需要在A电脑的进程发一段数据到B电脑的进程，我们一般会在代码里使用socket进行编程。
@@ -1227,6 +1215,134 @@ HTTP 请求和响应   一般而言，对于跨域`XMLHttpRequest`或`Fetch`请�
 
 [1]RFC 2616:*https://tools.ietf.org/html/rfc2616*[2]HTTP Headers 集合:*https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers*[3]RFC 1945:*https://tools.ietf.org/html/rfc1945*[4]RFC 2068:*https://tools.ietf.org/html/rfc2068*[5]rfc7540:*https://httpwg.org/specs/rfc7540.html*[6]网站 demo 演示:*https://http2.akamai.com/demo*[7]前端须知的 Cookie 知识小结:*https://juejin.im/post/6844903841909964813*[8]MDN:*https://developer.mozilla.org/zh-CN/docs/Web/HTTP*[9]HTTP的发展 :*https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Basics_of_HTTP/Evolution_of_HTTP*[10]HTTP概述:*https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Overview*[11]HTTP/2 简介:*https://developers.google.com/web/fundamentals/performance/http2?hl=zh-cn*[12]缓存（二）——浏览器缓存机制：强缓存、协商缓存:*https://github.com/amandakelake/blog/issues/41*[13]（建议精读）HTTP灵魂之问，巩固你的 HTTP 知识体系:*https://juejin.im/post/6844904100035821575#heading-62
 
+
+
+# protobuf 、protobuf与json的区别
+
+在分布式应用或者微服务架构中，各个服务之间通常**使用`json`或者`xml`结构数据进行通信**，通常情况下，是没什么问题的，但是在高性能和大数据通信的系统当中，如果有办法可**以压缩数据量**，提高传输效率，显然会给用户带来更快更流畅的体验。
+
+google公司就通过使用一种新的数据交换格式办到了这点，==新的数据交换的格式叫做**`protobuf`**。==
+
+`protobuf`有多屌呢，可以看一下下面的官方测试报告：
+
+ 
+
+![img](https://img-blog.csdnimg.cn/img_convert/fcdc80984ef616602378819910a4e07a.png)
+
+![img](https://img-blog.csdnimg.cn/img_convert/45895331016e32932c205171356b8ab0.png)
+
+ 
+
+数据包压缩后大小
+
+可以看到，一条消息数据，用`protobuf`序列化后的大小是`json`的10分之一，是`xml`格式的20分之一，但是性能却是它们的5~100倍。
+
+## protobuf重点总结：
+
+protobuf数据交换格式是以tag|leg|value传递数据
+
+protoful中数据直接用value相连接传递，通过tar分辨顺序和对应数据的数据类型，通过leg判断这个value的长度，实现数据快而高效的传递。
+
+- tag：里面有两个变量fieldNumber和wireType分别是分辨value的顺序和数据类型
+  - tag的开销很小，json的key中可能是name，要占据4个字节，而tag只要一个字节，就传递顺序和数据类型两个信息
+- leg：代表当前value的长度，方便计算机更快获取数据和分割value（因为我们protobuf是把value相连传输）     使用了`varint`来存储
+- value：数据
+
+
+
+
+
+## protobuf理解：
+
+### 把数据变小一点
+
+我们以`json`数据为基础出发，通过一步一步的对它进行优化，来理解`protobuf`的实现原理。
+
+对于一条信息，`json`的表示方式为：
+
+ 
+
+```erlang
+{ "age": 30, "name": "zhangsan",  "height": 175.33, "weight": 140 }
+```
+
+中间有很多冗余的字符，比如`{`，`"`等
+
+protobuf直接：
+
+通过直接将`value`拼在了一起，舍去了不必要的冗余字符，我们大幅度的压缩了空间，但是会有一些问题，就是当我们将这段数据发送给接收端，接收端怎么知道每个`value`对应哪个`key`呢？比如`zhangsan`这个值，对应的是`age`还是`name`呢？
+
+比较好的方式是事先跟接收端约定好有哪些字段，顺序是啥样子的，然后接收端按照顺序对应起来：
+
+| 字段1：age | 字段2：name | 字段3： height | 字段4：weight |
+| :--------- | :---------- | :------------- | :------------ |
+| ↓          | ↓           | ↓              | ↓             |
+| 30         | zhangsan    | 175.33         | 140           |
+
+### 能不能更小一点
+
+假设`height`这个字段为`null`，我们其实是不必要传递这个字段的，这个时候我们需要传递的数据就为：
+
+但是在接收端，解析数据并按照顺序进行字段匹配的时候就会出问题：
+
+| 字段1：age | 字段2：name | 字段3： height | 字段4：weight |
+| :--------- | :---------- | :------------- | :------------ |
+| ↓          | ↓           | ↓              | ↓             |
+| 30         | zhangsan    | 140            |               |
+
+显然已经乱套了，为了保证能够正确的配对，我们可以使用`tag`技术：
+
+也就是说，每个字段我们都用`tag|value`的方式来存储的，在`tag`当中记录两种信息，一个是`value`对应的字段的编号，另一个是`value`的数据类型（比如是整形还是字符串等），因为`tag`中有字段编号信息，所以即使没有传递`height`字段的`value`值，根据编号也能正确的配对。
+
+### `Tag`的开销
+
+有的同学会问，使用`tag`的话，会增加额外的空间，这跟`json`的`key/value`有什么区别吗？
+
+这个问题问的好，`json`中的`key`是字符串，每个字符就会占据一个字节，所以像`name`这个`key`就会占据4个字节，但在`protobuf`中，`tag`使用二进制进行存储，一般只会占据一个字节，它的代码为：
+
+ 
+
+```cpp
+static int makeTag(final int fieldNumber, final int wireType) {
+
+
+
+  return (fieldNumber << 3) | wireType;
+
+
+
+}
+```
+
+`fieldNumber`表示后面的`value`所对应的字段的编号是多少，比如`fieldNumber`为1，就表示`age`，如果为2，就表示`name`等；`wireType`表示`value`的数据类型，以此来计算`value`占用字节的大小。
+
+在`protobuf`当中，`wireType`可以支持的字段类型如下：
+
+![img](https://img-blog.csdnimg.cn/img_convert/a9647f016669788f0317f19271454103.png)
+
+ 
+
+因为`tag`一般占用一个字节，开销还算是比较小的，所以`protobuf`整体的存储空间占用还是相对小了很多的。
+
+### 能不能更小点
+
+在实际的传输过程中，会传递整数，我们知道整数在计算机当中占据4个字节，但是绝大部分的整数，比如价格，库存等，都是比较小的整数，实际用不了4个字节，像127这种数，在计算机中的二进制是：
+`00000000 00000000 00000000 01111111`（4字节32位）
+完全可以用最后1个字节来进行存储，`protobuf`当中定义了`Varint`这种数据类型，可以以不同的长度来存储整数，将数据进一步的进行了压缩。
+
+但是这里面也有一个问题，在计算机当中的负数是用补码表示的，对于-1，它的二进制表示方式为：
+`11111111 11111111 11111111 11111111`（4字节32位）
+显然无法用1个字节来表示了，但-1确实是一个比较简单的数，这个时候就可以使用[zigzag](https://link.jianshu.com/?t=http%3A%2F%2Fblog.csdn.net%2Fzgwangbo%2Farticle%2Fdetails%2F51590186)算法来对负数进行进一步的压缩，最终我们可以使用2个字节来表示-1。
+
+### 要快
+
+虽然数据现在很小了，但是解析速度还是有很大的提升空间的，因为每个字段都是用`tag|value`来表示的，在`tag`中含有`value`的数据类型的信息，而不同的数据类型有不同的大小，比如如果`value`是`bool`型，我们就知道肯定占了一个字节，程序从`tag`后面直接读一个字节就可以解析出`value`，非常快，而`json`则需要进行字符串解析才可以办到。
+
+### 能不能更快一点
+
+如果`value`是字符串类型的，具体`value`有多长，我们无法从`tag`当中了解到，但是如果不知道`value`的长度，我们就不得不做字符串匹配操作，要知道字符串匹配是非常耗时的。
+为了能够快速解析字符串类型的数据，protobuf在存储的时候，做了特殊的处理，分成了三部分：`tag|leg|value`，其中的leg记录了字符串的长度，同样使用了`varint`来存储，一般一个字节就能搞定，然后程序从`leg`后截取`leg`个字节的数据作为`value`，解析速度非常快。
+
 # 参考资料
 
 https://www.zhihu.com/question/41609070
@@ -1237,3 +1353,4 @@ https://mp.weixin.qq.com/s/Q_zBXKHQ8k4g73WzxLx6iA
 
 https://mp.weixin.qq.com/s/0ck_po7hjU7NYa_8wMXAuQ
 
+[(21条消息) protobuf 为什么快_doublestar6__的博客-CSDN博客_protobuf为什么快](https://blog.csdn.net/qq_34873801/article/details/118066129)
