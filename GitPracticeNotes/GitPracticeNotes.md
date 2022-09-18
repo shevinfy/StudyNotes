@@ -38,3 +38,11 @@ git pull
 ```
 
 拉取最新项目就可以继续上传项目了
+
+
+
+
+
+## 修改最后一次commit的信息
+
+git commit --amend --message ="修改信息"
