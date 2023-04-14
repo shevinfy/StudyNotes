@@ -143,6 +143,20 @@ Constructor不能被重写，但是可以被重载，所以我们**一个类中�
 
 String对象是**不可变的**，可以理解为常量，线程安全。而StringBuiler和StringBuffer都继承了**AbstractStringBuiler，是可变的**。StringBuilder线程不安全，但是效率更高，StringBuffer对父类的方法加了==同步锁（synic）==，所以是线程安全的，但是效率比StringBuilder低。
 
+```
+1.三者的运行速度
+        首先从三者的执行速度来看，String<StringBuffer<StringBuilder。
+String最慢的原因：
+原来的str就会被JVM的垃圾回收机制（GC）给回收掉了，所以，str实际上并没有被更改，也就是前面说的String对象一旦创建之后就不可更改了。所以，Java中对String对象进行的操作实际上是一个不断创建新的对象并且将旧的对象回收的一个过程，所以执行速度很慢。
+
+2.三者的使用总结
+String：适用于少量的字符串操作的情况；
+StringBuilder：适用于单线程下在字符缓冲区进行大量操作的情况；
+StringBuffer：适用多线程下在字符缓冲区进行大量操作的情况。
+```
+
+
+
 ## 16. **String为什么是不可变的？**
 
 String类中**使用final关键字修饰字符数**组保存字符串。所以String对象是不可变的。同时String类被final修饰，不会被继承和扩展。（string是用final修饰，这里要说一下，并不是存引用值的a，b中的引用不可以改变，**而是创建的对象或常量对象其本身无法改变**，当改变其中一个时，会在**常量池**（缓冲池）或**堆**中创建一个**新的对象**并将对象的引用存入a,b（原对象本身并未改变）。为了解决这个问题stringbuffer和stringbuild出现了）
